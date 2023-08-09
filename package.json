@@ -1,0 +1,29 @@
+{
+  "name": "socket-box",
+  "version": "0.0.1",
+  "description": "a flexable websocket handler",
+  "main": "dist/socket-box.umd.js",
+  "module": "dist/socket-box.mjs",
+  "typings": "dist/socket-box.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "global": "npm link",
+    "clear": "npm unlink",
+    "loginnpm": "npm login --registry https://registry.npmjs.org",
+    "pushnpm": "npm publish --registry https://registry.npmjs.org"
+  },
+  "keywords": [
+    "websocket"
+  ],
+  "author": "greaclar",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.1.6",
+    "vite": "^4.4.7",
+    "vite-plugin-dts": "^3.3.1"
+  }
+}
