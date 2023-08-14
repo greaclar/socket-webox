@@ -1,10 +1,10 @@
 {
-  "name": "socket-box",
+  "name": "socket-webox",
   "version": "0.0.1",
   "description": "a flexable websocket handler",
-  "main": "dist/socket-box.umd.js",
-  "module": "dist/socket-box.mjs",
-  "typings": "dist/socket-box.d.ts",
+  "main": "dist/socket-webox.umd.js",
+  "module": "dist/socket-webox.mjs",
+  "typings": "dist/socket-webox.d.ts",
   "files": [
     "dist"
   ],

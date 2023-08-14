@@ -8,10 +8,10 @@ export default defineConfig({
     build: {
         lib: {
             // Could also be a dictionary or array of multiple entry points
-            entry: resolve(__dirname, './src/socket-box.ts'),
-            name: 'SocketBox',
+            entry: resolve(__dirname, './src/socket-webox.ts'),
+            name: 'SocketWebox',
             // the proper extensions will be added
-            fileName: 'socket-box',
+            fileName: 'socket-webox',
         },
         /* rollupOptions: {
           // 确保外部化处理那些你不想打包进库的依赖
