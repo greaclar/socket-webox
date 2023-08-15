@@ -198,9 +198,9 @@ export type SocketWeboxType<T, K> = {
      */
     cancelHeartbeat(): void;
     /**
-     * 关闭ws、取消ws上的error、message等事件监听、心跳检测。但已注册在事件中心的事件不会取消。
+     * 关闭ws、取消ws上的error、message等事件监听、心跳检测。ws实例、eventbus清除。
      */
-    closeWS(): void;
+    dispose(): void;
     /**
      * 给事件注册回调函数，如果想注册自定义事件，事件名必须以custom:开头
      * 一般用来注册监听ws生命周期回调、心跳超时回调、服务器响应回调
