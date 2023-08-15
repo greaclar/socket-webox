@@ -1,5 +1,5 @@
 import EventCenter, { type EventCenterType } from "./eventCenter";
-import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType, socketInstanceType } from "./socket.type";
+import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
 import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 // todo 开启失败后怎么办
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
@@ -138,6 +138,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
         }, this.heartBeatOptions.heartbeatTime)
     }
+    // 多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
     waitHeartBeatAnswer() {
         this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
@@ -186,6 +187,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.EvenBus?.off(eventName, callback);
     }
     clearEventBus() {
+        this.pauseHeartbeat(); // 停止心跳包发送，心跳包响应包接收事件需要eventbus来触发
         this.EvenBus?.clear();
     }
 }
