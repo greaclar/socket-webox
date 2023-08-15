@@ -62,7 +62,7 @@ export type heartBeatOptionsType<T> = {
     /**
      * 心跳检测状态
      */
-    heartbeatStatus?: heartbeatStatusEnum;
+    heartbeatStatus: heartbeatStatusEnum;
     /**
      * 心跳定时发送间隔，单位ms
      */
@@ -76,6 +76,10 @@ export type heartBeatOptionsType<T> = {
      */
     retryCount?: number;
     /**
+     * 心跳重试总次数
+     */
+    retryTotalCount?: number;
+    /**
      * 等待心跳响应的定时器
      */
     waitTimmer?: ReturnType<typeof setTimeout>;
@@ -84,7 +88,7 @@ export type heartBeatOptionsType<T> = {
      */
     receivedEventName?: string;
     /**
-     * 心跳包信息
+     * 发送到后端的心跳包信息
      */
     heartbeatMsg?: T
 
@@ -93,7 +97,7 @@ export type heartBeatOptionsType<T> = {
 /**
  * 用户初始化时传递的心跳参数
  */
-export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryCount'>
+export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryTotalCount'>
 
 /**
  * 实例化-》连接ws，可注册事件

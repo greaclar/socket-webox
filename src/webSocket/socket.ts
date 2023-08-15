@@ -11,7 +11,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
         this.wsOptions = option;
         this.EvenBus = new EventCenter();
-        initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryCount)
+        initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryTotalCount)
         this.connect();
     }
     connect(): void {
@@ -93,15 +93,15 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         }
         return console.error('销毁WS实例出错，WS实例丢失。');
     }
-    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryCount?: number): void {
+    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryTotalCount?: number): void {
 
         if (!this.WS) return console.warn('当前WS实例不存在，禁止初始化心跳检测。');
         if (arguments.length < 3 || typeof heartbeatMsg !== 'object' || typeof heartbeatTime !== 'number' || heartbeatTime <= 0) {
             console.warn('未传入合法参数，初始化心跳检测失败。');
             return;
         }
-        retryCount ??= 1;
-        this.heartBeatOptions.retryCount = retryCount >=0 ? Math.ceil(retryCount) : 1;
+        retryTotalCount ??= 1;
+        this.heartBeatOptions.retryTotalCount = retryTotalCount >=0 ? Math.ceil(retryTotalCount) : 1;
         this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
         this.heartBeatOptions.receivedEventName = receivedEventName;
         this.heartBeatOptions.heartbeatTime = heartbeatTime;
@@ -109,12 +109,12 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
         this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
     }
-    startHeartBeat(heartbeatTime?: number, retryCount?: number) {
+    startHeartBeat(heartbeatTime?: number, retryTotalCount?: number) {
         // 判断当前是否有ws实例
         if (this.WS === null) return;
         if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.log('未定义心跳数据');
         if (heartbeatTime && heartbeatTime > 0) this.heartBeatOptions.heartbeatTime = heartbeatTime;
-        if (retryCount && retryCount > 0) this.heartBeatOptions.retryCount = retryCount;
+        if (retryTotalCount && retryTotalCount > 0) this.heartBeatOptions.retryTotalCount = retryTotalCount;
         // 停止之前的心跳，防止多次调用，同时存在多个心跳检测
         this.pauseHeartbeat();
         // 注册监听心跳响应的事件
