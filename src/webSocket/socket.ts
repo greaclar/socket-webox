@@ -4,7 +4,7 @@ import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 // todo 开启失败后怎么办
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     EvenBus!: EventCenterType;
-    WS!: WebSocket | null;
+    WS: WebSocket | null = null;
     abortController: AbortController | null;
     wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
@@ -193,7 +193,7 @@ export default function initSocketWebox<K, T>(option: initWSOptionsType, initHea
         SocketWeboxInstance.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime);
         SocketWeboxInstance.on(WSEventsConst.open, function startHeartBeat() {
             SocketWeboxInstance.startHeartBeat();
-            SocketWeboxInstance.off(WSEventsConst.open, startHeartBeat); // once的性能没这样好
+            SocketWeboxInstance.off(WSEventsConst.open, startHeartBeat);
         })
     }
     return SocketWeboxInstance;
