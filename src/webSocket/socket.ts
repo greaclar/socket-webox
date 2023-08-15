@@ -110,8 +110,8 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     startHeartBeat(heartbeatTime?: number, retryTotalCount?: number) {
         // 判断当前是否有ws实例
-        if (this.WS === null) return;
-        if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.log('未定义心跳数据');
+        if (this.WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
+        if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
         if (heartbeatTime && heartbeatTime > 0) this.heartBeatOptions.heartbeatTime = heartbeatTime;
         if (retryTotalCount && retryTotalCount > 0) this.heartBeatOptions.retryTotalCount = retryTotalCount;
         // 停止之前的心跳，防止多次调用，同时存在多个心跳检测
@@ -133,7 +133,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
         }, this.heartBeatOptions.heartbeatTime)
     }
-    // 多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
+    // TODO：多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
     waitHeartBeatAnswer() {
         this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
