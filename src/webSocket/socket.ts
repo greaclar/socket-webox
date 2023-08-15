@@ -12,10 +12,9 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.wsOptions = option;
         this.EvenBus = new EventCenter();
         initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryTotalCount)
-        this.connect();
     }
     connect(): void {
-        if (this.WS !== null) return console.log('websocket 实例已经存在。');
+        if (this.WS !== null) return console.warn('websocket 实例已经存在。');
         this.pauseHeartbeat();
         if (Reflect.has(window, 'WebSocket')) {
             this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
@@ -95,7 +94,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryTotalCount?: number): void {
 
-        if (!this.WS) return console.warn('当前WS实例不存在，禁止初始化心跳检测。');
+        if (!this.EvenBus) return console.warn('当前事件中心实例不存在，禁止初始化心跳检测。');
         if (arguments.length < 3 || typeof heartbeatMsg !== 'object' || typeof heartbeatTime !== 'number' || heartbeatTime <= 0) {
             console.warn('未传入合法参数，初始化心跳检测失败。');
             return;
@@ -188,14 +187,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
 }
 
-export default function initSocketWebox<K, T>(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> {
-    const SocketWeboxInstance = new SocketWebox<K, T>(option);
-    if (initHeartbeatOptions) {
-        SocketWeboxInstance.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime);
-        SocketWeboxInstance.on(WSEventsConst.open, function startHeartBeat() {
-            SocketWeboxInstance.startHeartBeat();
-            SocketWeboxInstance.off(WSEventsConst.open, startHeartBeat);
-        })
-    }
+export default function initSocketWebox<K, T>(option: initWSOptionsType, initHeartbeatOptions: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> {
+    const SocketWeboxInstance = new SocketWebox<K, T>(option, initHeartbeatOptions);
     return SocketWeboxInstance;
 }
