@@ -72,9 +72,9 @@ export type heartBeatOptionsType<T> = {
      */
     heartbeatTimmer?: ReturnType<typeof setTimeout>;
     /**
-     * 等待心跳响应等待间隔，单位ms
+     * 心跳重试次数
      */
-    waitTime?: number;
+    retryCount?: number;
     /**
      * 等待心跳响应的定时器
      */
@@ -93,7 +93,7 @@ export type heartBeatOptionsType<T> = {
 /**
  * 用户初始化时传递的心跳参数
  */
-export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'waitTime'>
+export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryCount'>
 
 /**
  * 实例化-》连接ws，可注册事件
@@ -167,28 +167,21 @@ export type SocketWeboxType<T, K> = {
      */
     sendMsg(msg: T): void;
     /**
-     * 初始化心跳参数，并监听receivedEventName参数对应的事件
-     * @param heartbeatMsg 要给后端发送的心跳包
-     * @param receivedEventName 后端返回的消息类型值，用来触发心跳响应的回调
-     * @param heartbeatTime 心跳包发送延迟
-     */
-    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number): void;
-    /**
      * 初始心跳参数，并注册receivedEventName参数对应的心跳响应包响应的事件
      * @param heartbeatMsg 要给后端发送的心跳包
      * @param receivedEventName 后端返回的消息类型值，用来触发心跳响应的回调
      * @param heartbeatTime 心跳包发送延迟
-     * @param waitTime 心跳包响应等待时间
+     * @param retryCount 心跳包重试次数
      */
-    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, waitTime: number): void;
+    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryCount?: number): void;
     /**
      * 开启心跳检测，仅当ws实例存在且未开启才能成功开启。当发生延迟，会触发WSEventEnum.heartbeatOvertime事件。
      * 
      * 心跳超时不一定是断链，可能是网速差，可传递新的心跳延迟和等待时间
      * @param heartbeatTime 心跳包发送间隔
-     * @param waitTime 心跳包响应等待时间
+     * @param retryCount 心跳包重试次数
      */
-    startHeartBeat(heartbeatTime?: number, waitTime?: number): void;
+    startHeartBeat(heartbeatTime?: number, retryCount?: number): void;
     /**
      * 暂停心跳检测，清空未完成的定时心跳包发送，将状态设置为stop
      */
