@@ -33,7 +33,7 @@ export type EventCenterType = {
      */
     clear(): void;
 }
-
+// TODO:在非ts环境，用户可传递任意参数，需要判断
 export default class EventCenter implements EventCenterType {
     evenMap: Map<string, Set<Function>>;
     constructor() {

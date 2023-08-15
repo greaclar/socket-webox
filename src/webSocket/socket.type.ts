@@ -40,7 +40,7 @@ export const WSEventsConst = {
 /**
  * ws实例初始化的参数
  */
-export type initWSOptions = {
+export type initWSOptionsType = {
     /**
      * 初始化ws的地址
      */
@@ -90,6 +90,9 @@ export type heartBeatOptionsType<T> = {
 
 }
 
+/**
+ * 用户初始化时传递的心跳参数
+ */
 export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'waitTime'>
 
 /**
@@ -109,7 +112,7 @@ export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>,
  * 外部可取消事件的触发
  * 外部可销毁ws
  */
-export type MyWebSocketType<T, K> = {
+export type SocketWeboxType<T, K> = {
     /**
      * 每个实例维护唯一一个事件中心
      */
@@ -121,11 +124,15 @@ export type MyWebSocketType<T, K> = {
     /**
      * 初始化ws的url、protocols、receiveEventKey
      */
-    wsOptions: initWSOptions;
+    wsOptions: initWSOptionsType;
     /**
      * 心跳相关配置
      */
     heartBeatOptions: heartBeatOptionsType<T>;
+    /**
+     * 连接ws，并监听ws原生事件，通过eventbus触发对应的事件，可监听的事件可导入WSEventsConst查看
+     */
+    connect():void;
     /**
      * 给当前的ws实例添加事件监听
      */
@@ -206,7 +213,7 @@ export type MyWebSocketType<T, K> = {
      * @param eventName 要触发的事件名
      * @param callback 事件回调
      */
-    // once(eventName: string, callback: Function): void;
+    once(eventName: string, callback: Function): void;
     /**
      * 触发已注册事件
      * @param eventName 要触发的已注册事件名
@@ -231,6 +238,7 @@ export type MyWebSocketType<T, K> = {
  */
 export type socketInstanceType =
     'sendMsg'
+    | 'connect'
     | 'initHeartbeat'
     | 'startHeartBeat'
     | 'pauseHeartbeat'

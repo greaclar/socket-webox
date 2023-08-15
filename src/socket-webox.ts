@@ -1,4 +1,4 @@
-import initWebsocket, { MyWebSocket } from './webSocket/socket';
-export { type MyWebSocketType, WSEventsConst } from './webSocket/socket.type';
-export const MySocket = MyWebSocket;
-export default initWebsocket;
+import initSocketWebox, { SocketWebox } from './webSocket/socket';
+export { type SocketWeboxType as MyWebSocketType, WSEventsConst } from './webSocket/socket.type';
+export const MySocket = SocketWebox;
+export default initSocketWebox;

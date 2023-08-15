@@ -1,18 +1,29 @@
 import EventCenter, { type EventCenterType } from "./eventCenter";
-import type { MyWebSocketType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptions, socketInstanceType } from "./socket.type";
+import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType, socketInstanceType } from "./socket.type";
 import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 // todo 开启失败后怎么办
-export class MyWebSocket<T, K> implements MyWebSocketType<T, K> {
+export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     EvenBus!: EventCenterType;
     WS!: WebSocket | null;
     abortController: AbortController | null;
-    wsOptions: initWSOptions
+    wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
-    constructor(option: initWSOptions) {
+    constructor(option: initWSOptionsType) {
         this.wsOptions = option;
         this.EvenBus = new EventCenter();
-        this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
-        this.addWSListener();
+        this.connect();
+    }
+    connect(): void {
+        if (this.WS !== null) return console.log('websocket 实例已经存在。');
+        this.pauseHeartbeat();
+        if (Reflect.has(window, 'WebSocket')) {
+            this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
+            this.addWSListener();
+            return;
+        }
+        // 派发事件
+        this.onError(new Error("WebSocket is not supported by this browser."));
+        this.onClose();
     }
     addWSListener(): void {
         this.removeWSListener();
@@ -38,24 +49,23 @@ export class MyWebSocket<T, K> implements MyWebSocketType<T, K> {
         // 发送个测试数据
         this.EvenBus.emit(WSEventsConst.open, event);
     }
-    onError(event: Event): void {
+    onError(event: Event | Error): void {
         console.log('ws error', this, event);
         this.EvenBus.emit(WSEventsConst.error, event);
     }
-    onClose(event: CloseEvent): void {
+    onClose(): void {
         // new时（先走error），或后端断开都会走这部，
         // 如果new时，连接不上，ws原生实例是null
         // 如果是后端断开，ws原生实例存在，但readstate为3，但ws实例无法复用，即使后端正常
         console.log('ws close', this);
         this.EvenBus.emit(WSEventsConst.close);
-        // this.closeWS();
     }
     onMessage(event: MessageEvent<any>): void {
         const data = JSON.parse(event.data)
         this.EvenBus.emit(data[this.wsOptions.receiveEventKey], data);
         // console.log('ws message', data);
     }
-    
+
     sendMsg(msg: T): void {
         // console.log('send', msg);
         console.log('发送时ws连接状态：', this.WS && this.WS.readyState === this.WS.OPEN);
@@ -75,7 +85,6 @@ export class MyWebSocket<T, K> implements MyWebSocketType<T, K> {
         this.clearEventBus();
         if (this.WS) {
             this.WS.close();
-            // this.WS = null;
             return;
         }
         return console.error('销毁WS实例出错，WS实例丢失。');
@@ -165,6 +174,9 @@ export class MyWebSocket<T, K> implements MyWebSocketType<T, K> {
     on(eventName: string, callback: Function) {
         this.EvenBus.on(eventName, callback);
     }
+    once(eventName: string, callback: Function) {
+        this.EvenBus.once(eventName, callback);
+    }
     off(eventName: string, callback?: Function) {
         // 限制外部不能取消内部注册的监听后端心跳响应的事件
         if (eventName === this.heartBeatOptions.receivedEventName!) return console.log('外部不能手动取消心跳包接收回调，请直接取消心跳检测。');
@@ -175,14 +187,14 @@ export class MyWebSocket<T, K> implements MyWebSocketType<T, K> {
     }
 }
 
-export default function initWebsocket<K, T>(option: initWSOptions, initHeartbeatOptions?: initHeartbeatOptionsType<K>): MyWebSocketType<K, T> {
-    const MySocket = new MyWebSocket<K, T>(option);
+export default function initSocketWebox<K, T>(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> {
+    const SocketWeboxInstance = new SocketWebox<K, T>(option);
     if (initHeartbeatOptions) {
-        MySocket.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime);
-        MySocket.on(WSEventsConst.open, function startHeartBeat() {
-            MySocket.startHeartBeat();
-            MySocket.off(WSEventsConst.open, startHeartBeat);
+        SocketWeboxInstance.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime);
+        SocketWeboxInstance.on(WSEventsConst.open, function startHeartBeat() {
+            SocketWeboxInstance.startHeartBeat();
+            SocketWeboxInstance.off(WSEventsConst.open, startHeartBeat); // once的性能没这样好
         })
     }
-    return MySocket;
+    return SocketWeboxInstance;
 }
