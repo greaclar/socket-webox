@@ -204,7 +204,11 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
 }
 
-export default function initSocketWebox<K, T>(option: initWSOptionsType, initHeartbeatOptions: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> {
+export default function initSocketWebox<K, T>(option: initWSOptionsType, initHeartbeatOptions: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> | null {
+    if (!SocketWebox.isSupportWebSocket()) {
+        console.log('当前浏览器不支持WebSocket');
+        return null;
+    }
     const SocketWeboxInstance = new SocketWebox<K, T>(option, initHeartbeatOptions);
     return SocketWeboxInstance;
 }
