@@ -1,6 +1,6 @@
 import EventCenter, { type EventCenterType } from "./eventCenter";
 import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
-import { WSEventsConst, heartbeatStatusEnum, errorKindEnum } from "./socket.type";
+import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     EvenBus: EventCenterType | null = null;
@@ -9,21 +9,21 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
+        if (!SocketWebox.isSupportWebSocket()) throw new Error("当前环境不存在WebSocket，初始化失败");
         this.wsOptions = option;
         this.EvenBus = new EventCenter();
         initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryMaxCount)
     }
     connect(): void {
-        if (this.WS !== null) return console.warn('websocket 实例已经存在。');
+        if (this.EvenBus === null) return console.warn('当前实例已销毁，请不要再引用。');
         this.pauseHeartbeat();
-        if (Reflect.has(window, 'WebSocket')) {
-            this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
-            this.addWSListener();
-            return;
-        }
-        // 派发事件
-        this.onError(new Error("WebSocket is not supported by this browser."), errorKindEnum.browser);
-        this.onClose(); // 与原生事件一致，原生事件error触发后，接着触发close事件
+        if (this.WS !== null) {
+            this.removeWSListener();
+            this.WS = null;
+            console.info('websocket旧实例已释放。');
+        };
+        this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
+        this.addWSListener();
     }
     addWSListener(): void {
         this.removeWSListener();
@@ -49,11 +49,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         // 发送个测试数据
         this.EvenBus?.emit(WSEventsConst.open, event);
     }
-    onError(event: Event | Error, errorKind?: errorKindEnum): void {
-        console.log('ws error', this, errorKind, event);
-        errorKind ??= errorKindEnum.server;
+    onError(event: Event): void {
+        console.log('ws error', this, event);
         this.pauseHeartbeat();
-        this.EvenBus?.emit(WSEventsConst.error, errorKind, event);
+        this.EvenBus?.emit(WSEventsConst.error, event);
     }
     onClose(): void {
         // new时（先走error），或后端断开都会走这部，
@@ -127,6 +126,9 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.sendHeartBeat();
     }
     sendHeartBeat() {
+        if (this.WS !== null && this.WS.readyState !== this.WS.OPEN) {
+            return console.warn('心跳检测中断，ws未开启');
+        }
         this.heartBeatOptions.heartbeatTimmer = setTimeout(() => {
             /* // for test
             console.log('发送心跳包',this.heartBeatOptions.heartbeatTimmer);
@@ -196,6 +198,9 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     clearEventBus() {
         this.pauseHeartbeat(); // 停止心跳包发送，心跳包响应包接收事件需要eventbus来触发
         this.EvenBus?.clear();
+    }
+    static isSupportWebSocket() {
+        return Reflect.has(window, 'WebSocket')
     }
 }
 
