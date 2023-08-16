@@ -38,6 +38,20 @@ export const WSEventsConst = {
 } as const;
 
 /**
+ * websocket的错误类型，后端断线 | 浏览器不兼容
+ */
+export const enum errorKindEnum {
+    /**
+     * 浏览器环境错误
+     */
+    browser = 'browser',
+    /**
+     * 服务错误，可能是后端关闭、被浏览器中断
+     */
+    server = 'server',
+}
+
+/**
  * ws实例初始化的参数
  */
 export type initWSOptionsType = {
@@ -78,7 +92,7 @@ export type heartBeatOptionsType<T> = {
     /**
      * 心跳重试总次数
      */
-    retryTotalCount?: number;
+    retryMaxCount?: number;
     /**
      * 等待心跳响应的定时器
      */
@@ -97,7 +111,7 @@ export type heartBeatOptionsType<T> = {
 /**
  * 用户初始化时传递的心跳参数
  */
-export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryTotalCount'>
+export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryMaxCount'>
 
 /**
  * 实例化-》连接ws，可注册事件

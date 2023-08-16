@@ -1,6 +1,6 @@
 import EventCenter, { type EventCenterType } from "./eventCenter";
 import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
-import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
+import { WSEventsConst, heartbeatStatusEnum, errorKindEnum } from "./socket.type";
 
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     EvenBus: EventCenterType | null = null;
@@ -11,7 +11,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
         this.wsOptions = option;
         this.EvenBus = new EventCenter();
-        initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryTotalCount)
+        initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryMaxCount)
     }
     connect(): void {
         if (this.WS !== null) return console.warn('websocket 实例已经存在。');
@@ -22,8 +22,8 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             return;
         }
         // 派发事件
-        this.onError(new Error("WebSocket is not supported by this browser."));
-        this.onClose();
+        this.onError(new Error("WebSocket is not supported by this browser."), errorKindEnum.browser);
+        this.onClose(); // 与原生事件一致，原生事件error触发后，接着触发close事件
     }
     addWSListener(): void {
         this.removeWSListener();
@@ -49,9 +49,11 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         // 发送个测试数据
         this.EvenBus?.emit(WSEventsConst.open, event);
     }
-    onError(event: Event | Error): void {
-        console.log('ws error', this, event);
-        this.EvenBus?.emit(WSEventsConst.error, event);
+    onError(event: Event | Error, errorKind?: errorKindEnum): void {
+        console.log('ws error', this, errorKind, event);
+        errorKind ??= errorKindEnum.server;
+        this.pauseHeartbeat();
+        this.EvenBus?.emit(WSEventsConst.error, errorKind, event);
     }
     onClose(): void {
         // new时（先走error），或后端断开都会走这部，
@@ -92,15 +94,15 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         }
         return console.error('销毁WS实例出错，WS实例丢失。');
     }
-    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryTotalCount?: number): void {
+    initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryMaxCount?: number): void {
 
         if (!this.EvenBus) return console.warn('当前事件中心实例不存在，禁止初始化心跳检测。');
         if (arguments.length < 3 || typeof heartbeatMsg !== 'object' || typeof heartbeatTime !== 'number' || heartbeatTime <= 0) {
             console.warn('未传入合法参数，初始化心跳检测失败。');
             return;
         }
-        retryTotalCount ??= 1;
-        this.heartBeatOptions.retryTotalCount = retryTotalCount >=0 ? Math.ceil(retryTotalCount) : 1;
+        retryMaxCount ??= 0;
+        this.heartBeatOptions.retryMaxCount = retryMaxCount > 0 ? Math.ceil(retryMaxCount) : 0;
         this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
         this.heartBeatOptions.receivedEventName = receivedEventName;
         this.heartBeatOptions.heartbeatTime = heartbeatTime;
@@ -108,17 +110,18 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
         this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
     }
-    startHeartBeat(heartbeatTime?: number, retryTotalCount?: number) {
+    startHeartBeat(heartbeatTime?: number, retryMaxCount?: number) {
         // 判断当前是否有ws实例
         if (this.WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
         if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
         if (heartbeatTime && heartbeatTime > 0) this.heartBeatOptions.heartbeatTime = heartbeatTime;
-        if (retryTotalCount && retryTotalCount > 0) this.heartBeatOptions.retryTotalCount = retryTotalCount;
+        if (retryMaxCount && retryMaxCount >= 0) this.heartBeatOptions.retryMaxCount = retryMaxCount;
         // 停止之前的心跳，防止多次调用，同时存在多个心跳检测
         this.pauseHeartbeat();
         // 注册监听心跳响应的事件
         this.on(this.heartBeatOptions.receivedEventName!, () => {
             this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.Received;
+            this.heartBeatOptions.retryCount && (this.heartBeatOptions.retryCount = 0); // 不为零，重置重试次数
         })
         // 延迟发送一个心跳包
         this.sendHeartBeat();
@@ -146,6 +149,14 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
                 return;
             }
             // 超时
+            this.heartBeatOptions.retryCount!++;
+            console.warn('心跳超时，延迟次数：', this.heartBeatOptions.retryCount);
+            if (this.heartBeatOptions.retryCount! <= this.heartBeatOptions.retryMaxCount!) {
+                // 继续等待
+                console.log('重发');
+
+                return this.sendHeartBeat();
+            }
             // 标记心跳检测结果
             this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.overtime;
             // 触发heartbeatOvertime事件
@@ -157,9 +168,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         clearTimeout(this.heartBeatOptions.heartbeatTimmer);
         clearTimeout(this.heartBeatOptions.waitTimmer);
         this.heartBeatOptions.receivedEventName && this.EvenBus?.off(this.heartBeatOptions.receivedEventName);
-        // 如果状态不为未设置心跳，则把状态改为停止
+
         if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return;
-        this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
+        this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;// 如果状态不为未设置心跳，则把状态改为停止
+        this.heartBeatOptions.retryCount = 0; // 重置重连次数
     }
     cancelHeartbeat(): void {
         // 停止心跳包发送
