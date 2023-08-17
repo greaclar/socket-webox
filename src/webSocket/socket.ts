@@ -35,7 +35,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         if (this.#WS) {
             const evenOptions: AddEventListenerOptions = { once: true, signal: this.#abortController.signal };
             this.#WS.addEventListener('open', this.#onOpen.bind(this), evenOptions);
-            this.#WS.addEventListener('error', this.onError.bind(this), evenOptions);
+            this.#WS.addEventListener('error', this.#onError.bind(this), evenOptions);
             this.#WS.addEventListener('close', this.onClose.bind(this), evenOptions);
             this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.#abortController.signal });
             return;
@@ -63,7 +63,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * ws实例发生错误的回调，会触发事件中心的error事件
      * @param event ws发生错误时的事件对象
      */
-    onError(event: Event): void {
+    #onError(event: Event): void {
         console.log('ws error', this, event);
         this.pauseHeartbeat();
         this.#EvenBus?.emit(WSEventsConst.error, event);
