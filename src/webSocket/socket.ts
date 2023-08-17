@@ -4,7 +4,7 @@ import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #EvenBus: EventCenterType | null = null;
-    WS: WebSocket | null = null;
+    #WS: WebSocket | null = null;
     abortController: AbortController | null;
     wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
@@ -17,24 +17,24 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     connect(): void {
         if (this.#EvenBus === null) return console.warn('当前实例已销毁，请不要再引用。');
         this.pauseHeartbeat();
-        if (this.WS !== null) {
+        if (this.#WS !== null) {
             this.removeWSListener();
-            this.WS = null;
+            this.#WS = null;
             console.info('websocket旧实例已释放。');
         };
-        this.WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
+        this.#WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
         this.addWSListener();
     }
     addWSListener(): void {
         this.removeWSListener();
         this.abortController = new AbortController();
 
-        if (this.WS) {
+        if (this.#WS) {
             const evenOptions: AddEventListenerOptions = { once: true, signal: this.abortController.signal };
-            this.WS.addEventListener('open', this.onOpen.bind(this), evenOptions);
-            this.WS.addEventListener('error', this.onError.bind(this), evenOptions);
-            this.WS.addEventListener('close', this.onClose.bind(this), evenOptions);
-            this.WS.addEventListener('message', this.onMessage.bind(this), { signal: this.abortController.signal });
+            this.#WS.addEventListener('open', this.onOpen.bind(this), evenOptions);
+            this.#WS.addEventListener('error', this.onError.bind(this), evenOptions);
+            this.#WS.addEventListener('close', this.onClose.bind(this), evenOptions);
+            this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.abortController.signal });
             return;
         }
         return console.error('初始化WebSocket监听事件异常，无法获取WS实例。');
@@ -72,12 +72,12 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         // console.log('send', msg);
         // console.log('发送时ws连接状态：', this.WS && this.WS.readyState === this.WS.OPEN);
 
-        if (this.WS) {
-            if (this.WS.readyState === this.WS.OPEN) {
-                this.WS.send(JSON.stringify(msg));
+        if (this.#WS) {
+            if (this.#WS.readyState === this.#WS.OPEN) {
+                this.#WS.send(JSON.stringify(msg));
                 return;
             }
-            return console.warn('WS状态未打开，无法发送消息，状态码：' + this.WS.readyState)
+            return console.warn('WS状态未打开，无法发送消息，状态码：' + this.#WS.readyState)
         }
         return console.error('WS实例不存在，无法发送消息。')
     }
@@ -85,10 +85,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.removeWSListener();
         this.pauseHeartbeat();
         this.clearEventBus();
-        if (this.WS) {
-            this.WS.close();
+        if (this.#WS) {
+            this.#WS.close();
             this.#EvenBus = null;
-            this.WS = null;
+            this.#WS = null;
             return;
         }
         return console.error('销毁WS实例出错，WS实例丢失。');
@@ -114,7 +114,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     startHeartBeat(heartbeatTime?: number, retryMaxCount?: number) {
         // 判断当前是否有ws实例
-        if (this.WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
+        if (this.#WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
         if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
         if (heartbeatTime && heartbeatTime > 0) this.heartBeatOptions.heartbeatTime = heartbeatTime;
         if (retryMaxCount && retryMaxCount >= 0) this.heartBeatOptions.retryMaxCount = retryMaxCount;
@@ -129,7 +129,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.sendHeartBeat();
     }
     sendHeartBeat() {
-        if (this.WS !== null && this.WS.readyState !== this.WS.OPEN) {
+        if (this.#WS !== null && this.#WS.readyState !== this.#WS.OPEN) {
             return console.warn('心跳检测中断，ws未开启');
         }
         this.heartBeatOptions.heartbeatTimmer = setTimeout(() => {
