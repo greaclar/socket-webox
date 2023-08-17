@@ -136,19 +136,19 @@ export type SocketWeboxType<T, K> = {
     /**
      * 每个实例维护唯一一个事件中心
      */
-    EvenBus: EventCenterType | null;
+    // EvenBus: EventCenterType | null;
     /**
      * 每个实例内维护唯一一个WebSocket实例
      */
-    WS: WebSocket | null;
+    // WS: WebSocket | null;
     /**
      * 初始化ws的url、protocols、receiveEventKey
      */
-    wsOptions: initWSOptionsType;
+    // wsOptions: initWSOptionsType;
     /**
      * 心跳相关配置
      */
-    heartBeatOptions: heartBeatOptionsType<T>;
+    // heartBeatOptions: heartBeatOptionsType<T>;
     /**
      * 连接ws，并监听ws原生事件，通过eventbus触发对应的事件，可监听的事件可导入WSEventsConst查看
      */
@@ -156,31 +156,31 @@ export type SocketWeboxType<T, K> = {
     /**
      * 给当前的ws实例添加事件监听
      */
-    addWSListener(): void;
+    // addWSListener(): void;
     /**
      * 移除当前的ws实例的事件监听
      */
-    removeWSListener(): void;
+    // removeWSListener(): void;
     /**
      * ws实例打开时的事件回调，会触发事件中心的wsopen事件
      * @param event ws打开时的事件对象
      */
-    onOpen(event: Event): void;
+    // onOpen(event: Event): void;
     /**
      * ws实例发生错误的回调，会触发事件中心的wserror事件
      * @param event ws发生错误时的事件对象
      */
-    onError(event: Event): void;
+    // onError(event: Event): void;
     /**
      * ws实例正常关闭的回调，会触发事件中心的wsclose事件
      * @param event ws关闭时的事件对象
      */
-    onClose(event: CloseEvent): void;
+    // onClose(event: CloseEvent): void;
     /**
      * ws实例接收消息回调，会触发事件中心的wsmessage事件
      * @param event ws实例接收到消息事件时的事件对象
      */
-    onMessage(event: MessageEvent<any>): void;
+    // onMessage(event: MessageEvent<any>): void;
     /**
      * 使用ws发送消息
      * @param msg 要发送的消息
@@ -232,12 +232,6 @@ export type SocketWeboxType<T, K> = {
      * @param callback 事件回调
      */
     once(eventName: string, callback: Function): void;
-    /**
-     * 触发已注册事件
-     * @param eventName 要触发的已注册事件名
-     * @param args 事件所有回调可以接收的参数
-     */
-    // emit(eventName: string, ...args: any[]): void;
     /**
      * 解除事件，不能解除（内部注册的）心跳包等待服务器响应回调
      * @param eventName 要解除的事件名
