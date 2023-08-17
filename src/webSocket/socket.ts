@@ -26,7 +26,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.#addWSListener();
     }
     /**
-     * 给当前的ws实例添加事件监听，添加前会将旧的实例原生事件清除
+     * 给当前的ws实例添加事件监听，添加前会将旧的实例原生事件清除，并创建新的控制器赋值给#abortController
      */
     #addWSListener(): void {
         this.removeWSListener();
@@ -42,21 +42,36 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         }
         return console.error('初始化WebSocket监听事件异常，无法获取WS实例。');
     }
+    /**
+     * 移除当前的ws实例的事件监听，并将#abortController设为null
+     */
     removeWSListener(): void {
         this.#abortController?.abort();
         this.#abortController = null;
     }
+    /**
+     * ws实例打开时的事件回调，会触发事件中心的open事件
+     * @param event ws打开时的原生事件对象
+     */
     onOpen(event: Event): void {
         console.log("Connection open ...");
 
         // 发送个测试数据
         this.#EvenBus?.emit(WSEventsConst.open, event);
     }
+    /**
+     * ws实例发生错误的回调，会触发事件中心的error事件
+     * @param event ws发生错误时的事件对象
+     */
     onError(event: Event): void {
         console.log('ws error', this, event);
         this.pauseHeartbeat();
         this.#EvenBus?.emit(WSEventsConst.error, event);
     }
+    /**
+     * ws实例关闭的回调，会触发事件中心的close事件
+     * @param event ws关闭时的事件对象
+     */
     onClose(): void {
         // new时（先走error），或后端断开都会走这部，
         // 如果new时，连接不上，ws原生实例是null
@@ -64,6 +79,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         console.log('ws close', this);
         this.#EvenBus?.emit(WSEventsConst.close);
     }
+    /**
+     * ws实例接收消息回调，会触发事件中心的receiveEventKey对应的事件
+     * @param event ws实例接收到消息事件时的事件对象
+     */
     onMessage(event: MessageEvent<any>): void {
         const data = JSON.parse(event.data)
         const eventName = data[this.#wsOptions.receiveEventKey];
@@ -131,6 +150,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         // 延迟发送一个心跳包
         this.sendHeartBeat();
     }
+    /**
+     * 如果当前#WS不为null，且状态不为打开状态，则报警告，并停止执行
+     * 否则，启动定时器来发送一个心跳包，并调用waitHeartBeatAnswer()
+     */
     sendHeartBeat() {
         if (this.#WS !== null && this.#WS.readyState !== this.#WS.OPEN) {
             return console.warn('心跳检测中断，ws未开启');
@@ -144,7 +167,12 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.#heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
         }, this.#heartBeatOptions.heartbeatTime)
     }
-    // TODO：多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
+    /**
+     * TODO：多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
+     * 将当前心跳状态改为等待心跳包响应中，同时生成一个定时器，定时任务会判断心跳状态是否被修改为已接收，是则重新调用sendHeartBeat
+     * 否则走超时，超时次数加一，如果超时次数未达最大允许次数，则重新调用sendHeartBeat。否则派发超时事件，将状态改为超时，停止调用sendHeartBeat
+     * @returns 等待心跳响应的计算器
+     */
     waitHeartBeatAnswer() {
         this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
