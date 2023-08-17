@@ -164,7 +164,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             (this.heartBeatOptions.heartbeatMsg as any).msg = this.heartBeatOptions.heartbeatTimmer
             // for test */
             this.sendMsg(this.#heartBeatOptions.heartbeatMsg!);
-            this.#heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
+            this.#heartBeatOptions.waitTimmer = this.#waitHeartBeatAnswer()
         }, this.#heartBeatOptions.heartbeatTime)
     }
     /**
@@ -173,7 +173,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * 否则走超时，超时次数加一，如果超时次数未达最大允许次数，则重新调用sendHeartBeat。否则派发超时事件，将状态改为超时，停止调用sendHeartBeat
      * @returns 等待心跳响应的计算器
      */
-    waitHeartBeatAnswer() {
+    #waitHeartBeatAnswer() {
         this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
         return setTimeout(() => {
