@@ -5,7 +5,7 @@ import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #EvenBus: EventCenterType | null = null;
     #WS: WebSocket | null = null;
-    abortController: AbortController | null;
+    #abortController: AbortController | null;
     wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
@@ -27,21 +27,21 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     addWSListener(): void {
         this.removeWSListener();
-        this.abortController = new AbortController();
+        this.#abortController = new AbortController();
 
         if (this.#WS) {
-            const evenOptions: AddEventListenerOptions = { once: true, signal: this.abortController.signal };
+            const evenOptions: AddEventListenerOptions = { once: true, signal: this.#abortController.signal };
             this.#WS.addEventListener('open', this.onOpen.bind(this), evenOptions);
             this.#WS.addEventListener('error', this.onError.bind(this), evenOptions);
             this.#WS.addEventListener('close', this.onClose.bind(this), evenOptions);
-            this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.abortController.signal });
+            this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.#abortController.signal });
             return;
         }
         return console.error('初始化WebSocket监听事件异常，无法获取WS实例。');
     }
     removeWSListener(): void {
-        this.abortController?.abort();
-        this.abortController = null;
+        this.#abortController?.abort();
+        this.#abortController = null;
     }
     onOpen(event: Event): void {
         console.log("Connection open ...");
