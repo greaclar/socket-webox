@@ -2,26 +2,28 @@
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts';
+import strip from '@rollup/plugin-strip';
 
-export default defineConfig({
-    plugins: [dts()],
+export default defineConfig(({ mode }) => {
+  const isBuild = mode === 'production';
+  console.log('mode', isBuild);
+  return {
+    plugins: [
+      dts(),
+      isBuild && strip({
+        functions: ['console.log', 'console.info'],
+        include: ['**/**.ts']
+      }),
+    ].filter(Boolean),
     build: {
-        lib: {
-            // Could also be a dictionary or array of multiple entry points
-            entry: resolve(__dirname, './src/socket-webox.ts'),
-            name: 'SocketWebox',
-            // the proper extensions will be added
-            fileName: 'socket-webox',
-        },
-        /* rollupOptions: {
-          // 确保外部化处理那些你不想打包进库的依赖
-          external: ['vue'],
-          output: {
-            // 在 UMD 构建模式下为这些外部化的依赖提供一个全局变量
-            globals: {
-              vue: 'Vue',
-            },
-          },
-        }, */
+      lib: {
+        entry: resolve(__dirname, './src/socket-webox.ts'),
+        name: 'SocketWebox',
+        fileName: 'socket-webox',
+      },
+      /* rollupOptions: {
+        
+      }, */
     },
+  }
 })
