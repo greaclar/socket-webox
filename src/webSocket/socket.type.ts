@@ -195,6 +195,11 @@ export type SocketWeboxType<T, K> = {
      */
     initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryCount?: number): void;
     /**
+     * 获取当前心跳包发送的间隔，没有定义返回undefined
+     * @return 当前配置的心跳发送间隔，但实际两次心跳包的发送间隔为该值的两倍。
+     */
+    getHeartbeatTime(): number | undefined;
+    /**
      * 开启心跳检测，仅当ws实例存在且未开启才能成功开启。当发生延迟，会触发WSEventEnum.heartbeatOvertime事件。
      * 
      * 心跳超时不一定是断链，可能是网速差，可传递新的心跳延迟和等待时间
@@ -256,6 +261,7 @@ export type socketInstanceType =
     | 'startHeartBeat'
     | 'pauseHeartbeat'
     | 'cancelHeartbeat'
+    | 'getHeartbeatTime'
     | 'closeWS'
     | 'on'
     | 'once'

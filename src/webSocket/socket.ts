@@ -109,6 +109,9 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
         this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
     }
+    getHeartbeatTime() {
+        return this.heartBeatOptions.heartbeatTime;
+    }
     startHeartBeat(heartbeatTime?: number, retryMaxCount?: number) {
         // 判断当前是否有ws实例
         if (this.WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
