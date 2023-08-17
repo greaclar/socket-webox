@@ -37,10 +37,8 @@ export const WSEventsConst = {
     heartbeatOvertime: 'inner:heartbeatOvertime'
 } as const;
 
-
-
 /**
- * ws实例初始化的参数
+ * socket-webox初始化的必选参数，配置WebSocket的连接信息
  */
 export type initWSOptionsType = {
     /**
@@ -52,13 +50,24 @@ export type initWSOptionsType = {
      */
     protocols?: string,
     /**
-     * 后端返回消息数据时，读取的消息对象的属性，该属性值作为事件名，触发eventbus里的事件
+     * 后端每次推送的消息时，标记此次消息的类型的属性名。该属性的值会作为事件名，派发事件，并把此次消息作为参数调用事件回调。
+     * @example
+     * ```js
+     * // 后端返回的消息，要求必须是一个包含msgMode属性的对象，该属性的值用来标记该消息的类型，如下：
+     * {msgMode: 'heartbeat', msg: 'hellow'}
+     * 
+     * // socket-webox接收到后，会读取msgMode的值，然后通过事件中心派发'heartbeat'事件，并把整个对象作为参数，调用其回调。
+     * // 例如，如果注册了以下事件，当后端返回上面的消息，回调里的代码就会被执行
+     * socketInstance.on('heartbeat', (data)=>{
+     *      console.log(data) // {msgMode: 'heartbeat', msg: 'hellow'}
+     * })
+     * ```
      */
     receiveEventKey: string
 }
 
 /**
- * 心跳初始化的参数
+ * 实例内部保存的心跳配置参数
  */
 export type heartBeatOptionsType<T> = {
     /**
@@ -97,13 +106,11 @@ export type heartBeatOptionsType<T> = {
 }
 
 /**
- * 用户初始化时传递的心跳参数
+ * 用户初始化时传递的心跳参数，如果不需要心跳检测则不需要传递
  */
 export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryMaxCount'>
 
 /**
- * 实例化-》连接ws，可注册事件
- * 
  * 事件中心与ws解耦，ws关闭不会清空外部注册的事件。但会关掉监听心跳返回包时内部注册的事件
  * 
  * ws的生命周期钩子，心跳包响应超时都会触发WSEventEnum内固定的事件，外部触发会被拦截，但可被服务器响应触发
@@ -112,9 +119,9 @@ export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>,
  * 
  *  MyWebSocket实例类型，T为sendMsg的参数类型，K为接收到后端消息的消息类型
  * 外部可停止心跳，重启心跳（传递参数表示更新心跳间隔）
- * 外部可关闭旧的ws，也可以直接重新开启ws，旧的会被销毁（连同心跳检测）
+ * 外部可调用实例的connect重新实例化一个WebSocket，旧的会被销毁（连同心跳检测）
  * 外部可发送msg
- * 外部可监听事件的触发（ws生命周期事件：open、message：所有msg、固定的msg）
+ * 外部可监听事件的触发（ws生命周期事件：open、error、close）
  * 外部可取消事件的触发
  * 外部可销毁ws
  */
