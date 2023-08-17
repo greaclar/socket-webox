@@ -33,19 +33,21 @@ export type EventCenterType = {
      */
     clear(): void;
 }
-// TODO:在非ts环境，用户可传递任意参数，需要判断
+
 export default class EventCenter implements EventCenterType {
     evenMap: Map<string, Set<Function>>;
     constructor() {
         this.evenMap = new Map()
     }
     on(eventName: string, callback: Function) {
+        if (typeof callback !== 'function') return;
         if (!this.evenMap.has(eventName)) {
             this.evenMap.set(eventName, new Set())
         }
         this.evenMap.get(eventName)!.add(callback)
     }
     once(eventName: string, callback: Function): void {
+        if (typeof callback !== 'function') return;
         let onceCallback: Function | null = (...args: any[]) => {
             callback.apply(null, args);
             this.off(eventName, onceCallback!);
@@ -55,7 +57,7 @@ export default class EventCenter implements EventCenterType {
     }
     emit( eventName: string, ...args: any[]): void {
         if (!this.evenMap.has(eventName)) {
-            console.warn('emit fail, can`t find: ' + eventName, this.evenMap);
+            console.warn('emit fail, can`t find: ' + eventName);
             return;
         }
         
