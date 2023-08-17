@@ -23,9 +23,12 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             console.info('websocket旧实例已释放。');
         };
         this.#WS = new WebSocket(this.#wsOptions.url, this.#wsOptions.protocols);
-        this.addWSListener();
+        this.#addWSListener();
     }
-    addWSListener(): void {
+    /**
+     * 给当前的ws实例添加事件监听，添加前会将旧的实例原生事件清除
+     */
+    #addWSListener(): void {
         this.removeWSListener();
         this.#abortController = new AbortController();
 
