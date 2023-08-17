@@ -6,11 +6,11 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #EvenBus: EventCenterType | null = null;
     #WS: WebSocket | null = null;
     #abortController: AbortController | null;
-    wsOptions: initWSOptionsType
+    #wsOptions: initWSOptionsType
     heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
         if (!SocketWebox.isSupportWebSocket()) throw new Error("当前环境不存在WebSocket，初始化失败");
-        this.wsOptions = option;
+        this.#wsOptions = option;
         this.#EvenBus = new EventCenter();
         initHeartbeatOptions && this.initHeartbeat(initHeartbeatOptions.heartbeatMsg, initHeartbeatOptions.receivedEventName, initHeartbeatOptions.heartbeatTime, initHeartbeatOptions.retryMaxCount)
     }
@@ -22,7 +22,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.#WS = null;
             console.info('websocket旧实例已释放。');
         };
-        this.#WS = new WebSocket(this.wsOptions.url, this.wsOptions.protocols);
+        this.#WS = new WebSocket(this.#wsOptions.url, this.#wsOptions.protocols);
         this.addWSListener();
     }
     addWSListener(): void {
@@ -63,7 +63,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     onMessage(event: MessageEvent<any>): void {
         const data = JSON.parse(event.data)
-        const eventName = data[this.wsOptions.receiveEventKey];
+        const eventName = data[this.#wsOptions.receiveEventKey];
         console.log('receive type:', eventName, data);
         eventName && this.#EvenBus?.emit(eventName, data);
     }
