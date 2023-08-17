@@ -37,7 +37,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.#WS.addEventListener('open', this.#onOpen.bind(this), evenOptions);
             this.#WS.addEventListener('error', this.#onError.bind(this), evenOptions);
             this.#WS.addEventListener('close', this.#onClose.bind(this), evenOptions);
-            this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.#abortController.signal });
+            this.#WS.addEventListener('message', this.#onMessage.bind(this), { signal: this.#abortController.signal });
             return;
         }
         return console.error('初始化WebSocket监听事件异常，无法获取WS实例。');
@@ -83,7 +83,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * ws实例接收消息回调，会触发事件中心的receiveEventKey对应的事件
      * @param event ws实例接收到消息事件时的事件对象
      */
-    onMessage(event: MessageEvent<any>): void {
+    #onMessage(event: MessageEvent<any>): void {
         const data = JSON.parse(event.data)
         const eventName = data[this.#wsOptions.receiveEventKey];
         console.log('receive type:', eventName, data);
