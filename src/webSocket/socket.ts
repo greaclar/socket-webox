@@ -148,13 +148,13 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.#heartBeatOptions.retryCount && (this.#heartBeatOptions.retryCount = 0); // 不为零，重置重试次数
         })
         // 延迟发送一个心跳包
-        this.sendHeartBeat();
+        this.#sendHeartBeat();
     }
     /**
      * 如果当前#WS不为null，且状态不为打开状态，则报警告，并停止执行
      * 否则，启动定时器来发送一个心跳包，并调用waitHeartBeatAnswer()
      */
-    sendHeartBeat() {
+    #sendHeartBeat() {
         if (this.#WS !== null && this.#WS.readyState !== this.#WS.OPEN) {
             return console.warn('心跳检测中断，ws未开启');
         }
@@ -181,7 +181,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
 
             if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received) {
                 // 从新发起一个心跳包
-                this.sendHeartBeat();
+                this.#sendHeartBeat();
                 return;
             }
             // 超时
@@ -191,7 +191,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
                 // 继续等待
                 console.log('重发');
 
-                return this.sendHeartBeat();
+                return this.#sendHeartBeat();
             }
             // 标记心跳检测结果
             this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.overtime;
