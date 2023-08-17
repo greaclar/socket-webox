@@ -34,7 +34,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
 
         if (this.#WS) {
             const evenOptions: AddEventListenerOptions = { once: true, signal: this.#abortController.signal };
-            this.#WS.addEventListener('open', this.onOpen.bind(this), evenOptions);
+            this.#WS.addEventListener('open', this.#onOpen.bind(this), evenOptions);
             this.#WS.addEventListener('error', this.onError.bind(this), evenOptions);
             this.#WS.addEventListener('close', this.onClose.bind(this), evenOptions);
             this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.#abortController.signal });
@@ -53,7 +53,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * ws实例打开时的事件回调，会触发事件中心的open事件
      * @param event ws打开时的原生事件对象
      */
-    onOpen(event: Event): void {
+    #onOpen(event: Event): void {
         console.log("Connection open ...");
 
         // 发送个测试数据
