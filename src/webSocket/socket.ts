@@ -18,7 +18,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         if (this.#EvenBus === null) return console.warn('当前实例已销毁，请不要再引用。');
         this.pauseHeartbeat();
         if (this.#WS !== null) {
-            this.removeWSListener();
+            this.#removeWSListener();
             this.#WS = null;
             console.info('websocket旧实例已释放。');
         };
@@ -29,7 +29,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * 给当前的ws实例添加事件监听，添加前会将旧的实例原生事件清除，并创建新的控制器赋值给#abortController
      */
     #addWSListener(): void {
-        this.removeWSListener();
+        this.#removeWSListener();
         this.#abortController = new AbortController();
 
         if (this.#WS) {
@@ -45,7 +45,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     /**
      * 移除当前的ws实例的事件监听，并将#abortController设为null
      */
-    removeWSListener(): void {
+    #removeWSListener(): void {
         this.#abortController?.abort();
         this.#abortController = null;
     }
@@ -104,7 +104,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         return console.error('WS实例不存在，无法发送消息。')
     }
     dispose(): void {
-        this.removeWSListener();
+        this.#removeWSListener();
         this.pauseHeartbeat();
         this.clearEventBus();
         if (this.#WS) {
