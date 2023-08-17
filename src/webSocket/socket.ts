@@ -36,7 +36,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             const evenOptions: AddEventListenerOptions = { once: true, signal: this.#abortController.signal };
             this.#WS.addEventListener('open', this.#onOpen.bind(this), evenOptions);
             this.#WS.addEventListener('error', this.#onError.bind(this), evenOptions);
-            this.#WS.addEventListener('close', this.onClose.bind(this), evenOptions);
+            this.#WS.addEventListener('close', this.#onClose.bind(this), evenOptions);
             this.#WS.addEventListener('message', this.onMessage.bind(this), { signal: this.#abortController.signal });
             return;
         }
@@ -72,7 +72,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * ws实例关闭的回调，会触发事件中心的close事件
      * @param event ws关闭时的事件对象
      */
-    onClose(): void {
+    #onClose(): void {
         // new时（先走error），或后端断开都会走这部，
         // 如果new时，连接不上，ws原生实例是null
         // 如果是后端断开，ws原生实例存在，但readstate为3，但ws实例无法复用，即使后端正常
