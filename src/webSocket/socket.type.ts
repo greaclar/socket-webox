@@ -75,7 +75,8 @@ export type heartBeatOptionsType<T> = {
      */
     heartbeatStatus: heartbeatStatusEnum;
     /**
-     * 心跳定时发送间隔，单位ms
+     * 心跳定时发送间隔，单位ms。
+     * 例如定义1500，第一次心跳包在1500ms后发送，再等待1500ms检测响应情况，然后再等待1500ms发送下一次心跳闭包。不断循环。
      */
     heartbeatTime?: number;
     /**
@@ -87,7 +88,7 @@ export type heartBeatOptionsType<T> = {
      */
     retryCount?: number;
     /**
-     * 心跳重试总次数
+     * 心跳重试总次数阈值，超过或等于则停止重试，并派发心跳包延迟事件
      */
     retryMaxCount?: number;
     /**
@@ -95,7 +96,13 @@ export type heartBeatOptionsType<T> = {
      */
     waitTimmer?: ReturnType<typeof setTimeout>;
     /**
-     * 心跳检测后台响应数据时，事件名
+     * 后端响应心跳包时，派发心跳响应的事件名。用来区分普通推送消息和心跳响应。
+     * @example
+     * ```js
+     * // 心跳包发送后，后端需要响应的消息如下，只要求msgMode为'heartbeat'，msg字段可不定义
+     * // 这里msgMode，对应第一个参数里receiveEventKey的属性值
+     * { msgMode: 'heartbeat', msg: 'answer' }
+     * ```
      */
     receivedEventName?: string;
     /**
