@@ -7,7 +7,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #WS: WebSocket | null = null;
     #abortController: AbortController | null;
     #wsOptions: initWSOptionsType
-    heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
+    #heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
         if (!SocketWebox.isSupportWebSocket()) throw new Error("当前环境不存在WebSocket，初始化失败");
         this.#wsOptions = option;
@@ -101,29 +101,29 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             return;
         }
         retryMaxCount ??= 0;
-        this.heartBeatOptions.retryMaxCount = retryMaxCount > 0 ? Math.ceil(retryMaxCount) : 0;
-        this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
-        this.heartBeatOptions.receivedEventName = receivedEventName;
-        this.heartBeatOptions.heartbeatTime = heartbeatTime;
-        this.heartBeatOptions.receivedEventName = receivedEventName;
-        this.heartBeatOptions.heartbeatMsg = heartbeatMsg;
-        this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
+        this.#heartBeatOptions.retryMaxCount = retryMaxCount > 0 ? Math.ceil(retryMaxCount) : 0;
+        this.#heartBeatOptions.heartbeatMsg = heartbeatMsg;
+        this.#heartBeatOptions.receivedEventName = receivedEventName;
+        this.#heartBeatOptions.heartbeatTime = heartbeatTime;
+        this.#heartBeatOptions.receivedEventName = receivedEventName;
+        this.#heartBeatOptions.heartbeatMsg = heartbeatMsg;
+        this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
     }
     getHeartbeatTime() {
-        return this.heartBeatOptions.heartbeatTime;
+        return this.#heartBeatOptions.heartbeatTime;
     }
     startHeartBeat(heartbeatTime?: number, retryMaxCount?: number) {
         // 判断当前是否有ws实例
         if (this.#WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
-        if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
-        if (heartbeatTime && heartbeatTime > 0) this.heartBeatOptions.heartbeatTime = heartbeatTime;
-        if (retryMaxCount && retryMaxCount >= 0) this.heartBeatOptions.retryMaxCount = retryMaxCount;
+        if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
+        if (heartbeatTime && heartbeatTime > 0) this.#heartBeatOptions.heartbeatTime = heartbeatTime;
+        if (retryMaxCount && retryMaxCount >= 0) this.#heartBeatOptions.retryMaxCount = retryMaxCount;
         // 停止之前的心跳，防止多次调用，同时存在多个心跳检测
         this.pauseHeartbeat();
         // 注册监听心跳响应的事件
-        this.on(this.heartBeatOptions.receivedEventName!, () => {
-            this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.Received;
-            this.heartBeatOptions.retryCount && (this.heartBeatOptions.retryCount = 0); // 不为零，重置重试次数
+        this.on(this.#heartBeatOptions.receivedEventName!, () => {
+            this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.Received;
+            this.#heartBeatOptions.retryCount && (this.#heartBeatOptions.retryCount = 0); // 不为零，重置重试次数
         })
         // 延迟发送一个心跳包
         this.sendHeartBeat();
@@ -132,58 +132,58 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         if (this.#WS !== null && this.#WS.readyState !== this.#WS.OPEN) {
             return console.warn('心跳检测中断，ws未开启');
         }
-        this.heartBeatOptions.heartbeatTimmer = setTimeout(() => {
+        this.#heartBeatOptions.heartbeatTimmer = setTimeout(() => {
             /* // for test
             console.log('发送心跳包',this.heartBeatOptions.heartbeatTimmer);
             (this.heartBeatOptions.heartbeatMsg as any).msg = this.heartBeatOptions.heartbeatTimmer
             // for test */
-            this.sendMsg(this.heartBeatOptions.heartbeatMsg!);
-            this.heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
-        }, this.heartBeatOptions.heartbeatTime)
+            this.sendMsg(this.#heartBeatOptions.heartbeatMsg!);
+            this.#heartBeatOptions.waitTimmer = this.waitHeartBeatAnswer()
+        }, this.#heartBeatOptions.heartbeatTime)
     }
     // TODO：多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
     waitHeartBeatAnswer() {
-        this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
+        this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
         return setTimeout(() => {
             // console.log('检测心跳响应正常：', this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received, this.heartBeatOptions.waitTime);
 
-            if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received) {
+            if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received) {
                 // 从新发起一个心跳包
                 this.sendHeartBeat();
                 return;
             }
             // 超时
-            this.heartBeatOptions.retryCount!++;
-            console.warn('心跳超时，延迟次数：', this.heartBeatOptions.retryCount);
-            if (this.heartBeatOptions.retryCount! <= this.heartBeatOptions.retryMaxCount!) {
+            this.#heartBeatOptions.retryCount!++;
+            console.warn('心跳超时，延迟次数：', this.#heartBeatOptions.retryCount);
+            if (this.#heartBeatOptions.retryCount! <= this.#heartBeatOptions.retryMaxCount!) {
                 // 继续等待
                 console.log('重发');
 
                 return this.sendHeartBeat();
             }
             // 标记心跳检测结果
-            this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.overtime;
+            this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.overtime;
             // 触发heartbeatOvertime事件
             this.#EvenBus?.emit(WSEventsConst.heartbeatOvertime);
-        }, this.heartBeatOptions.heartbeatTime)
+        }, this.#heartBeatOptions.heartbeatTime)
     }
     pauseHeartbeat(): void {
         // 已经初始化心跳检测数据
-        clearTimeout(this.heartBeatOptions.heartbeatTimmer);
-        clearTimeout(this.heartBeatOptions.waitTimmer);
-        this.heartBeatOptions.receivedEventName && this.#EvenBus?.off(this.heartBeatOptions.receivedEventName);
+        clearTimeout(this.#heartBeatOptions.heartbeatTimmer);
+        clearTimeout(this.#heartBeatOptions.waitTimmer);
+        this.#heartBeatOptions.receivedEventName && this.#EvenBus?.off(this.#heartBeatOptions.receivedEventName);
 
-        if (this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return;
-        this.heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;// 如果状态不为未设置心跳，则把状态改为停止
-        this.heartBeatOptions.retryCount = 0; // 重置重连次数
+        if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return;
+        this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;// 如果状态不为未设置心跳，则把状态改为停止
+        this.#heartBeatOptions.retryCount = 0; // 重置重连次数
     }
     cancelHeartbeat(): void {
         // 停止心跳包发送
         this.pauseHeartbeat();
         // 重置心跳数据
-        this.heartBeatOptions = null as any;
-        this.heartBeatOptions = {
+        this.#heartBeatOptions = null as any;
+        this.#heartBeatOptions = {
             heartbeatStatus: heartbeatStatusEnum.cancel
         }
     }
@@ -195,7 +195,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
     off(eventName: string, callback?: Function) {
         // 限制外部不能取消内部注册的监听后端心跳响应的事件
-        if (eventName === this.heartBeatOptions.receivedEventName!) return console.log('外部不能手动取消心跳包接收回调，请直接取消心跳检测。');
+        if (eventName === this.#heartBeatOptions.receivedEventName!) return console.log('外部不能手动取消心跳包接收回调，请直接取消心跳检测。');
         this.#EvenBus?.off(eventName, callback);
     }
     clearEventBus() {
