@@ -1,6 +1,6 @@
 {
   "name": "socket-webox",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "a flexable websocket handler",
   "main": "dist/socket-webox.umd.js",
   "module": "dist/socket-webox.mjs",
@@ -20,7 +20,7 @@
     "websocket"
   ],
   "author": "greaclar",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-strip": "^3.0.2",
     "typescript": "^5.1.6",
