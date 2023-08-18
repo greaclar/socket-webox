@@ -283,9 +283,9 @@ ws.on(WSEventsMap.heartbeatOvertime, () => {
 
 ```js
 ws.getHeartbeatTime(); // 获取当前心跳包发送间隔时间
-ws.startHeartBeat(); // 启动（重启）心跳检测
+ws.startHeartbeat(); // 启动（重启）心跳检测
 ws.pauseHeartBeat(); // 暂停心跳检测
-ws.startHeartBeat(1800, 1); // 以1800ms的间隔，允许连续掉包1次（只掉包一次会忽视）的配置，重新启动心跳检测。
+ws.startHeartbeat(1800, 1); // 以1800ms的间隔，允许连续掉包1次（只掉包一次会忽视）的配置，重新启动心跳检测。
 ```
 
 处理思路：
@@ -325,7 +325,7 @@ export function newSocketWebox() {
     // 监听ws的打开事件，启动心跳检测
     ws.on(WSEventsMap.open, () => {
         Message('WebSocket 连接成功。');
-        ws.startHeartBeat(); // 启动心跳检测
+        ws.startHeartbeat(); // 启动心跳检测
     });
     
     // 监听心跳应答超时事件，当心跳应答包不能按时推送到客户端就会调用
@@ -339,7 +339,7 @@ export function newSocketWebox() {
         Message('网络拥堵，正在检测网络状态。');
         // 更新心跳间隔，及心跳应答包连续超时允许次数
         // 每触发一次心跳无应答，就在原来的等待间隔上加500ms，并允许忽略一次
-        ws.startHeartBeat(ws.getHeartbeatTime() + 500, 1); 
+        ws.startHeartbeat(ws.getHeartbeatTime() + 500, 1); 
     })
 
     ws.connect();
@@ -458,8 +458,8 @@ export function newSocketWebox() {
     ws.on(WSEventsMap.open, () => {
         Message.success('WebSocket 连接成功。');
         reConnectCount = 0; // 重置重连次数
-        ws.startHeartBeat(); // 启动心跳检测
-        // ws.startHeartBeat(1500, 0); // 启动心跳检测时，指定心跳间隔和心跳不应答连续忽略次数
+        ws.startHeartbeat(); // 启动心跳检测
+        // ws.startHeartbeat(1500, 0); // 启动心跳检测时，指定心跳间隔和心跳不应答连续忽略次数
     });
     
     // 监听心跳应答超时事件，当心跳包不能按时推送到客户端就会调用
@@ -470,7 +470,7 @@ export function newSocketWebox() {
             return;
         }
         Message('网络拥堵，正在检测网络状态。');
-        ws.startHeartBeat(ws.getHeartbeatTime() + 500, 1); 
+        ws.startHeartbeat(ws.getHeartbeatTime() + 500, 1); 
     })
     
     // 监听当前WebSocket实例连接关闭事件。初始连接失败会触发error、close、后端中断只会触发close

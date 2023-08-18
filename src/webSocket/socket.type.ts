@@ -13,7 +13,7 @@ export const enum heartbeatStatusEnum {
      */
     waiting = 1,
     /**
-     * 后端响应一个心跳包后，并成功触发heartBeatOptionsType.receivedEventName事件的状态
+     * 后端响应一个心跳包后，并成功触发heartbeatOptionsType.receivedEventName事件的状态
      */
     Received = 2,
     /**
@@ -69,7 +69,7 @@ export type initWSOptionsType = {
 /**
  * 实例内部保存的心跳配置参数
  */
-export type heartBeatOptionsType<T> = {
+export type heartbeatOptionsType<T> = {
     /**
      * 心跳检测状态
      */
@@ -115,7 +115,7 @@ export type heartBeatOptionsType<T> = {
 /**
  * 用户初始化时传递的心跳参数，如果不需要心跳检测则不需要传递
  */
-export type initHeartbeatOptionsType<T> = Required<Pick<heartBeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartBeatOptionsType<T>,  'retryMaxCount'>
+export type initHeartbeatOptionsType<T> = Required<Pick<heartbeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartbeatOptionsType<T>,  'retryMaxCount'>
 
 export type SocketWeboxType<T, K> = {
     /**
@@ -147,7 +147,7 @@ export type SocketWeboxType<T, K> = {
      * @param heartbeatTime 心跳包发送间隔
      * @param retryCount 心跳包响应延迟重试次数
      */
-    startHeartBeat(heartbeatTime?: number, retryCount?: number): void;
+    startHeartbeat(heartbeatTime?: number, retryCount?: number): void;
     /**
      * 暂停心跳检测，清空未完成的定时心跳包发送，连续掉线次数改为0，将状态设置为stop
      */

@@ -1,5 +1,5 @@
 import EventCenter, { type EventCenterType } from "./eventCenter";
-import type { SocketWeboxType, heartBeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
+import type { SocketWeboxType, heartbeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
 import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
@@ -7,7 +7,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #WS: WebSocket | null = null;
     #abortController: AbortController | null;
     #wsOptions: initWSOptionsType
-    #heartBeatOptions: heartBeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
+    #heartBeatOptions: heartbeatOptionsType<T> = { heartbeatStatus: heartbeatStatusEnum.cancel };
     constructor(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<T>) {
         if (!SocketWebox.isSupportWebSocket()) throw new Error("当前环境不存在WebSocket，初始化失败");
         this.#wsOptions = option;
@@ -135,7 +135,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     getHeartbeatTime() {
         return this.#heartBeatOptions.heartbeatTime;
     }
-    startHeartBeat(heartbeatTime?: number, retryMaxCount?: number) {
+    startHeartbeat(heartbeatTime?: number, retryMaxCount?: number) {
         // 判断当前是否有ws实例
         if (this.#WS === null) return console.warn('当前WS实例不存在，无法启动心跳检测。');
         if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return console.warn('未定义心跳数据。');
