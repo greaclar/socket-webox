@@ -1,6 +1,6 @@
 {
   "name": "socket-webox",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "a flexable websocket handler",
   "main": "dist/socket-webox.umd.js",
   "module": "dist/socket-webox.mjs",
@@ -17,8 +17,13 @@
     "pushnpm": "npm publish --registry https://registry.npmjs.org"
   },
   "keywords": [
-    "websocket"
+    "websocket","eventbus","tools"
   ],
+  "homepage": "https://github.com/greaclar/socket-webox#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greaclar/socket-webox.git"
+  },
   "author": "greaclar",
   "license": "MIT",
   "devDependencies": {
