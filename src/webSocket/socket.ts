@@ -19,6 +19,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.pauseHeartbeat();
         if (this.#WS !== null) {
             this.#removeWSListener();
+            this.#WS.close();
             this.#WS = null;
             console.info('websocket旧实例已释放。');
         };
