@@ -56,8 +56,6 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      */
     #onOpen(event: Event): void {
         console.log("Connection open ...");
-
-        // 发送个测试数据
         this.#EvenBus?.emit(WSEventsConst.open, event);
     }
     /**
@@ -74,7 +72,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * @param event ws关闭时的事件对象
      */
     #onClose(): void {
-        // new时（先走error），或后端断开都会走这部，
+        // new时出错（先走error），或后端断开都会走这步，
         // 如果new时，连接不上，ws原生实例是null
         // 如果是后端断开，ws原生实例存在，但readstate为3，但ws实例无法复用，即使后端正常
         console.log('ws close', this);
@@ -92,9 +90,6 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
 
     sendMsg(msg: T): void {
-        // console.log('send', msg);
-        // console.log('发送时ws连接状态：', this.WS && this.WS.readyState === this.WS.OPEN);
-
         if (this.#WS) {
             if (this.#WS.readyState === this.#WS.OPEN) {
                 this.#WS.send(JSON.stringify(msg));
@@ -178,8 +173,6 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
         return setTimeout(() => {
-            // console.log('检测心跳响应正常：', this.heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received, this.heartBeatOptions.waitTime);
-
             if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received) {
                 // 从新发起一个心跳包
                 this.#sendHeartBeat();
