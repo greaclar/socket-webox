@@ -14,7 +14,7 @@
  * 外部可销毁ws
  */
 
-import initSocketWebox from "./socket";
+import initSocketWebox from "../src/webSocket/socket";
 
 // ts示例
 type msgType = {
