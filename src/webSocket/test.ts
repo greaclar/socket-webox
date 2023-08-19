@@ -14,19 +14,82 @@
  * 外部可销毁ws
  */
 
-/**
- * 前后交流的数据类型
- */
+import initSocketWebox from "./socket";
+
+// ts示例
 type msgType = {
-    msgMode: string,
+    msgType: string,
     msg: any
 }
-/**
- * 初始化一个socket的参数
- */
-const initSocketOpt = {
+
+const initSocketOption = {
     // name参数为和后端沟通好的属性，它的值用来标记本次连接
-    url: "ws://127.0.0.1:2048/ws/?name=zhangsan",
-    // 每次后端返回的消息必须是一个对象，且包含msgMode字段，该字段值作为事件名触发事件中心的事件
-    receiveEventKey: 'msgMode'
+    url: "ws://127.0.0.1:7070/ws/?name=greaclar",
+    // 每次后端返回的消息必须是一个对象，且包含msgType字段，该字段值作为事件名触发事件中心的事件
+    receiveEventKey: 'msgType'
+}
+
+const SocketWebox = initSocketWebox<msgType>(initSocketOption);
+
+
+// 普通流程示例
+
+function connectWS() {
+    const WS = new WebSocket("ws://127.0.0.1:7070/ws/?name=user1");
+    // WebSocket实例上的事件
+
+    // 当连接成功打开
+    WS.addEventListener('open', () => {
+        console.log('ws连接成功');
+    });
+    // 监听后端的推送消息
+    WS.addEventListener('message', (event) => {
+        console.log('ws收到消息', event.data);
+    });
+    // 监听后端的关闭消息，如果发送意外错误，这里也会触发
+    WS.addEventListener('close', () => {
+        console.log('ws连接关闭');
+    });
+    // 监听WS的意外错误消息
+    WS.addEventListener('error', (error) => {
+        console.log('ws出错', error);
+    });
+    return WS;
+}
+
+let WS = connectWS();
+let heartbeatStatus = 'waiting';
+
+WS.addEventListener('open', () => {
+    // 启动成功后开启心跳检测
+    startHeartbeat()
+})
+
+WS.addEventListener('message', (event) => {
+    const { data } = event;
+    console.log('心跳响应', data, data === '"heartbeat"');
+    if (data === '"heartbeat"') {
+        heartbeatStatus = 'received';
+    }
+})
+
+function startHeartbeat() {
+    setTimeout(() => {
+        heartbeatStatus = 'waiting';
+        WS.send('heartbeat');
+        waitHeartbeat();
+    }, 1500)
+}
+
+function waitHeartbeat() {
+    setTimeout(() => {
+        console.log('ws心跳超时', heartbeatStatus);
+        if (heartbeatStatus === 'waiting') {
+            // 心跳应答超时
+            WS.close();
+        } else {
+            // 启动下一轮心跳检测
+            startHeartbeat();
+        }
+    }, 1500)
 }
