@@ -26,6 +26,9 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.#WS = new WebSocket(this.#wsOptions.url, this.#wsOptions.protocols);
         this.#addWSListener();
     }
+    getWebSocket() {
+        return this.#WS;
+    }
     /**
      * 给当前的ws实例添加事件监听，添加前会将旧的实例原生事件清除，并创建新的控制器赋值给#abortController
      */

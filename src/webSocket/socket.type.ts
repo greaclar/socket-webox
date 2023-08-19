@@ -123,6 +123,10 @@ export type SocketWeboxType<T, K> = {
      */
     connect():void;
     /**
+     * 获取当前连接的WebSocket实例
+     */
+    getWebSocket(): WebSocket | null;
+    /**
      * 使用ws发送消息，会先判断当前WebSocket实例是否存在，存在的状态是否为open
      * @param msg 要发送的消息
      */
