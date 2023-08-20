@@ -34,6 +34,13 @@ export type EventCenterType = {
     clear(): void;
 }
 
+/*
+ * @Author: greaclar
+ * @Date: 2023-08-20
+ * @Description:
+ * @description: 事件中心类
+ * 
+ */
 export default class EventCenter implements EventCenterType {
     evenMap: Map<string, Set<Function>>;
     constructor() {

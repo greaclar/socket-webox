@@ -2,6 +2,13 @@ import EventCenter, { type EventCenterType } from "./eventCenter";
 import type { SocketWeboxType, heartbeatOptionsType, initHeartbeatOptionsType, initWSOptionsType } from "./socket.type";
 import { WSEventsConst, heartbeatStatusEnum } from "./socket.type";
 
+/*
+ * @Author: greaclar
+ * @Date: 2023-08-20
+ * @Description:
+ * @description: SocketWebox类，用于创建一个管理WebSocket实例的工具库
+ * 
+ */
 export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     #EvenBus: EventCenterType | null = null;
     #WS: WebSocket | null = null;
@@ -91,8 +98,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         console.log('receive type:', eventName, data);
         eventName && this.#EvenBus?.emit(eventName, data);
     }
-
-    sendMsg(msg: T): void {
+    send(msg: T): void {
         if (this.#WS) {
             if (this.#WS.readyState === this.#WS.OPEN) {
                 this.#WS.send(JSON.stringify(msg));
@@ -114,8 +120,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         }
         return console.error('销毁WS实例出错，WS实例丢失。');
     }
+    close():void {
+        this.dispose();
+    }
     initHeartbeat(heartbeatMsg: T, receivedEventName: string, heartbeatTime: number, retryMaxCount?: number): void {
-
         if (!this.#EvenBus) return console.warn('当前事件中心实例不存在，禁止初始化心跳检测。');
         if (arguments.length < 3 || typeof heartbeatMsg !== 'object' || typeof heartbeatTime !== 'number' || heartbeatTime <= 0) {
             console.warn('未传入合法参数，初始化心跳检测失败。');
@@ -162,7 +170,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             console.log('发送心跳包',this.heartBeatOptions.heartbeatTimmer);
             (this.heartBeatOptions.heartbeatMsg as any).msg = this.heartBeatOptions.heartbeatTimmer
             // for test */
-            this.sendMsg(this.#heartBeatOptions.heartbeatMsg!);
+            this.send(this.#heartBeatOptions.heartbeatMsg!);
             this.#heartBeatOptions.waitTimmer = this.#waitHeartBeatAnswer()
         }, this.#heartBeatOptions.heartbeatTime)
     }
@@ -170,14 +178,14 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
      * TODO：多加一个字段，记录连续超时次数。超时后，在指定次数内从发心跳包。并且响应包接收事件记录。新增offline事件，如果重试次数是一，直接触发offline
      * 将当前心跳状态改为等待心跳包响应中，同时生成一个定时器，定时任务会判断心跳状态是否被修改为已接收，是则重新调用sendHeartBeat
      * 否则走超时，超时次数加一，如果超时次数未达最大允许次数，则重新调用sendHeartBeat。否则派发超时事件，将状态改为超时，停止调用sendHeartBeat
-     * @returns 等待心跳响应的计算器
+     * @returns 等待心跳响应的定时器
      */
     #waitHeartBeatAnswer() {
         this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.waiting;
         // 在回调里查看心跳接收事件有没有被触发
         return setTimeout(() => {
             if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.Received) {
-                // 从新发起一个心跳包
+                // 重新发起一个心跳包
                 this.#sendHeartBeat();
                 return;
             }
@@ -185,9 +193,7 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
             this.#heartBeatOptions.retryCount!++;
             console.warn('心跳超时，延迟次数：', this.#heartBeatOptions.retryCount);
             if (this.#heartBeatOptions.retryCount! <= this.#heartBeatOptions.retryMaxCount!) {
-                // 继续等待
                 console.log('重发');
-
                 return this.#sendHeartBeat();
             }
             // 标记心跳检测结果
@@ -203,8 +209,10 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.#heartBeatOptions.receivedEventName && this.#EvenBus?.off(this.#heartBeatOptions.receivedEventName);
 
         if (this.#heartBeatOptions.heartbeatStatus === heartbeatStatusEnum.cancel) return;
-        this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;// 如果状态不为未设置心跳，则把状态改为停止
-        this.#heartBeatOptions.retryCount = 0; // 重置重连次数
+        // 如果状态不为未设置心跳，则把状态改为停止
+        this.#heartBeatOptions.heartbeatStatus = heartbeatStatusEnum.stop;
+        // 重置重连次数
+        this.#heartBeatOptions.retryCount = 0; 
     }
     cancelHeartbeat(): void {
         // 停止心跳包发送
@@ -227,7 +235,8 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
         this.#EvenBus?.off(eventName, callback);
     }
     clearEventBus() {
-        this.pauseHeartbeat(); // 停止心跳包发送，心跳包响应包接收事件需要eventbus来触发
+        // 停止心跳包发送，心跳包响应包接收事件需要eventbus来触发
+        this.pauseHeartbeat(); 
         this.#EvenBus?.clear();
     }
     static isSupportWebSocket() {
@@ -235,6 +244,12 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
     }
 }
 
+/**
+ * 创建一个SocketWebox实例的工厂函数
+ * @param option 初始化连接相关的参数
+ * @param initHeartbeatOptions 初始心跳检测相关的参数
+ * @returns SocketWebox实例对象，如果浏览器不兼容返回null
+ */
 export default function initSocketWebox<K = any, T = K>(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> | null {
     if (!SocketWebox.isSupportWebSocket()) {
         console.log('当前浏览器不支持WebSocket');

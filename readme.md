@@ -102,7 +102,7 @@ const initSocketOptions = {
     protocols: string,
     // 后端每次推送的消息中，标记此次消息的类型的属性名，必传
     // 该属性的值会作为事件名派发事件，并把此次消息作为参数调用事件回调。
-    receiveEventKey: 'msgMode'
+    receiveEventKey: 'msgID'
 }
 
 // 初始化socket-webox实例
@@ -136,16 +136,16 @@ ws.dispose();
 + 假设后端websocket服务会不定时推送以下消息：
 
   ```json
-  {"msgMode": "update-test1", "msg": "hellow"}
+  {"msgID": "update-test1", "msg": "hellow"}
   ```
 
 + 在任意模块下，通过实例上的on来监听具体的消息推送：
 
   ```js
   // 每次后端推送以上信息，这里的回调就会触发，
-  // 也就是说只要返回的消息中，msgMode为update-test1，对应的回调就会触发
+  // 也就是说只要返回的消息中，msgID为update-test1，对应的回调就会触发
   const callbackFn = (data) => {
-      this.msg = data; // data: {msgMode: 'update-test1', msg: 'hellow'}
+      this.msg = data; // data: {msgID: 'update-test1', msg: 'hellow'}
   }
   ws.on('update-test1', callbackFn);
   ```
@@ -195,8 +195,8 @@ import { Message } from 'element-ui';
 export function newSocketWebox() {
     // 初始化socket-webox实例
     const ws = initSocket({
-        url: "ws://127.0.0.1:7070/ws/?name=user1",
-        receiveEventKey: 'msgMode'
+        url: "ws://127.0.0.1:7070/ws/?user_name=user1",
+        receiveEventKey: 'msgID'
     }); 
     
     // 如果浏览器不支持WebSocket，会返回null
@@ -250,16 +250,16 @@ import initSocket, { WSEventsMap } from 'socket-webox';
 import { Message } from 'element-ui';
 
 const initSocketOptions = {
-    url: "ws://127.0.0.1:7070/ws/?name=user1",
-    receiveEventKey: 'msgMode' // 读取后端推送消息的msgMode属性，用来区分消息类型是心跳包还是普通消息
+    url: "ws://127.0.0.1:7070/ws/?user_name=user1",
+    receiveEventKey: 'msgID' // 读取后端推送消息的msgID属性，用来区分消息类型是心跳包还是普通消息
 }
 const heartbeatOptions = {
     // 定时向后端发送的心跳包内容
-    heartbeatMsg: { msgMode: 'heartbeat', msg: null },
+    heartbeatMsg: { msgID: 'heartbeat', msg: null },
     // 后端应答心跳包时，标记消息类型为心跳应答的字符串
     // @example
     // 心跳包发送后，后端需要应答的消息如下:
-    // { msgMode: 'heartbeat', msg: 'answer' }，只要求msgMode为'heartbeat'，msg属性可不定义
+    // { msgID: 'heartbeat', msg: 'answer' }，只要求msgID为'heartbeat'，msg属性可不定义
     receivedEventName: 'heartbeat',
     // 心跳包发送间隔，两次心跳包发送的实际间隔为3000ms，中间需要检测心跳应答情况。
     heartbeatTime: 1500,
@@ -309,11 +309,11 @@ import { Message } from 'element-ui';
 
 export function newSocketWebox() {
     const initSocketOptions = {
-        url: "ws://127.0.0.1:7070/ws/?name=user1",
-        receiveEventKey: 'msgMode'
+        url: "ws://127.0.0.1:7070/ws/?user_name=user1",
+        receiveEventKey: 'msgID'
     }
     const heartbeatOptions = {
-        heartbeatMsg: { msgMode: 'heartbeat', msg: null },
+        heartbeatMsg: { msgID: 'heartbeat', msg: null },
         receivedEventName: 'heartbeat',
         heartbeatTime: 1500,
         retryMaxTime: 0, // 一旦发生后端心跳应答超时，就派发心跳应答超时事件
@@ -371,8 +371,8 @@ import { Message } from 'element-ui'
 
 export function newSocketWebox() {
     const initSocketOptions = {
-        url: "ws://127.0.0.1:7070/ws/?name=user1",
-        receiveEventKey: 'msgMode'
+        url: "ws://127.0.0.1:7070/ws/?user_name=user1",
+        receiveEventKey: 'msgID'
     }
     const ws = initSocket(initSocketOptions);
     
@@ -436,11 +436,11 @@ import { Message } from 'element-ui'
 
 export function newSocketWebox() {
     const initSocketOptions = {
-        url: "ws://127.0.0.1:7070/ws/?name=user1",
-        receiveEventKey: 'msgMode'
+        url: "ws://127.0.0.1:7070/ws/?user_name=user1",
+        receiveEventKey: 'msgID'
     }
     const heartbeatOptions = {
-        heartbeatMsg: { msgMode: 'heartbeat', msg: null },
+        heartbeatMsg: { msgID: 'heartbeat', msg: null },
         receivedEventName: 'heartbeat',
         heartbeatTime: 1500,
         retryMaxTime: 0, 

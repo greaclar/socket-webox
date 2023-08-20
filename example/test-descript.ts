@@ -14,7 +14,7 @@
  * 外部可销毁ws
  */
 
-import initSocketWebox from "../src/webSocket/socket";
+import initSocketWebox from "socket-webox";
 
 // ts示例
 type msgType = {
@@ -24,9 +24,9 @@ type msgType = {
 
 const initSocketOption = {
     // name参数为和后端沟通好的属性，它的值用来标记本次连接
-    url: "ws://127.0.0.1:7070/ws/?name=greaclar",
-    // 每次后端返回的消息必须是一个对象，且包含msgType字段，该字段值作为事件名触发事件中心的事件
-    receiveEventKey: 'msgType'
+    url: "ws://127.0.0.1:7070/ws/?user_name=greaclar",
+    // 每次后端返回的消息必须是一个对象，且包含msgID字段，该字段值作为事件名触发事件中心的事件
+    receiveEventKey: 'msgID'
 }
 
 const SocketWebox = initSocketWebox<msgType>(initSocketOption);

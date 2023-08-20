@@ -117,6 +117,9 @@ export type heartbeatOptionsType<T> = {
  */
 export type initHeartbeatOptionsType<T> = Required<Pick<heartbeatOptionsType<T>, 'heartbeatTime' | 'receivedEventName' | 'heartbeatMsg'>> & Pick<heartbeatOptionsType<T>,  'retryMaxCount'>
 
+/**
+ * SocketWebox实例对象，创建后可注册相关事件的监听，然后随时调用connect，发起连接，更多请查看readme.md
+ */
 export type SocketWeboxType<T, K> = {
     /**
      * 连接ws，并监听ws原生事件，通过eventbus触发对应的事件，可监听的事件可导入WSEventsMap查看
@@ -130,7 +133,7 @@ export type SocketWeboxType<T, K> = {
      * 使用ws发送消息，会先判断当前WebSocket实例是否存在，存在的状态是否为open
      * @param msg 要发送的消息
      */
-    sendMsg(msg: T): void;
+    send(msg: T): void;
     /**
      * 不建议单独使用，应该在初始化时定义：初始化心跳参数，并注册receivedEventName参数对应的心跳响应包响应的事件
      * @param heartbeatMsg 要给后端发送的心跳包
@@ -164,6 +167,11 @@ export type SocketWeboxType<T, K> = {
      * 关闭ws、取消ws上的error、message等事件监听、心跳检测。ws实例、eventbus清除。无法再使用。
      */
     dispose(): void;
+    /**
+     * 推荐使用dispose，功能一致
+     * 关闭ws、取消ws上的error、message等事件监听、心跳检测。ws实例、eventbus清除。无法再使用。
+     */
+    close(): void;
     /**
      * 给事件注册回调函数，如果调用connect
      * 一般用来注册监听ws生命周期回调、心跳超时回调、服务器响应回调，open、error、close等生命周期回调一般只调用一次，但多次调用conneet，它们也会响应触发

@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { newWS } from '@/utils/initSocket';
+import { newWS } from './config';
 
 export default {
     name: 'test-socket',
@@ -53,7 +53,7 @@ export default {
     },
     methods: {
         send() {
-            this.WS?.sendMsg(this.$data.wsMsg)
+            this.WS?.send(this.$data.wsMsg)
         },
         pauseHeartbeat() {
             this.WS?.pauseHeartbeat();

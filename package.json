@@ -1,6 +1,6 @@
 {
   "name": "socket-webox",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "a flexable websocket handler",
   "main": "dist/socket-webox.umd.js",
   "module": "dist/socket-webox.mjs",

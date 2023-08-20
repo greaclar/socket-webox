@@ -1,6 +1,6 @@
 import initSocket, { WSEventsMap } from 'socket-webox';
 import { Message } from 'element-ui'
-// addEventListener 版本
+
 window.addEventListener("offline", () => {
     Message.error("网络连接已断开。");
 });
@@ -16,36 +16,36 @@ window.addEventListener("online", () => {
 export function newWS() {
     const initSocketOptions = {
         /**
-         * websocke连接地址，url参数name参数是和后端沟通好的属性，它的值用来标记本次连接
+         * websocke连接地址，url参数user_name参数是和后端沟通好的属性，它的值用来标记本次连接
          */ 
-        url: "ws://192.168.21.155:7070/ws/?name=user1",
+        url: "ws://127.0.0.1:7070/ws/?user_name=user1",
         /**
          * 后端每次推送的消息中，标记此次消息的类型的属性名。该属性的值会作为事件名派发事件，并把此次消息作为参数调用事件回调。
          * @example
          * ```js
-         * // 后端返回的消息，要求必须是一个包含msgMode属性的对象，该属性的值用来标记该消息的类型，如下：
-         * {msgMode: 'heartbeat', msg: 'hellow'}
+         * // 后端返回的消息，要求必须是一个包含msgID属性的对象，该属性的值用来标记该消息的类型，如下：
+         * {msgID: 'heartbeat', msg: 'hellow'}
          * 
-         * // socket-webox接收到后，会读取msgMode的值，然后通过事件中心派发'heartbeat'事件，并把整个对象作为参数，调用其回调。
+         * // socket-webox接收到后，会读取msgID的值，然后通过事件中心派发'heartbeat'事件，并把整个对象作为参数，调用其回调。
          * // 例如，如果注册了以下事件，当后端返回上面的消息，回调里的代码就会被执行
          * socketInstance.on('heartbeat', (data)=>{
-         *      console.log(data) // {msgMode: 'heartbeat', msg: 'hellow'}
+         *      console.log(data) // {msgID: 'heartbeat', msg: 'hellow'}
          * })
          * ```
          */
-        receiveEventKey: 'msgMode'
+        receiveEventKey: 'msgID'
     }
     const heartbeatOptions = {
         /**
          * 向后端发送的心跳包内容
          */
-        heartbeatMsg: { msgMode: 'heartbeat', msg: null },
+        heartbeatMsg: { msgID: 'heartbeat', msg: null },
         /**
          * 后端响应心跳包时，上面参数里initSocketOptions.receiveEventKey的属性值如果是'heartbeat'，才会标记为心跳响应
          * @example
          * ```js
-         * // 心跳包发送后，后端需要响应的消息如下，只要求msgMode为'heartbeat'，msg字段可不定义
-         * { msgMode: 'heartbeat', msg: 'answer' }
+         * // 心跳包发送后，后端需要响应的消息如下，只要求msgID为'heartbeat'，msg字段可不定义
+         * { msgID: 'heartbeat', msg: 'answer' }
          * ```
          */
         receivedEventName: 'heartbeat',
