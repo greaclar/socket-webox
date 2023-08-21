@@ -1,5 +1,5 @@
 import initSocket, { WSEventsMap } from 'socket-webox';
-import { Message } from 'element-ui'
+import { Message } from 'element-ui';
 
 window.addEventListener("offline", () => {
     Message.error("网络连接已断开。");

@@ -35,7 +35,7 @@ const SocketWebox = initSocketWebox<msgType>(initSocketOption);
 // 普通流程示例
 
 function connectWS() {
-    const WS = new WebSocket("ws://127.0.0.1:7070/ws/?name=user1");
+    const WS = new WebSocket("ws://127.0.0.1:7070/ws/?user_name=user1");
     // WebSocket实例上的事件
 
     // 当连接成功打开
