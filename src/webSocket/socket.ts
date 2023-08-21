@@ -246,8 +246,8 @@ export class SocketWebox<T, K> implements SocketWeboxType<T, K> {
 
 /**
  * 创建一个SocketWebox实例的工厂函数
- * @param option 初始化连接相关的参数
- * @param initHeartbeatOptions 初始心跳检测相关的参数
+ * @param 初始化连接相关的参数
+ * @param 初始心跳检测相关的参数
  * @returns SocketWebox实例对象，如果浏览器不兼容返回null
  */
 export default function initSocketWebox<K = any, T = K>(option: initWSOptionsType, initHeartbeatOptions?: initHeartbeatOptionsType<K>): SocketWeboxType<K, T> | null {
