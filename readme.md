@@ -287,7 +287,7 @@ ws.on(WSEventsMap.heartbeatOvertime, () => {
 ```js
 ws.getHeartbeatTime(); // 获取当前心跳包发送间隔时间
 ws.startHeartbeat(); // 启动（重启）心跳检测
-ws.pauseHeartBeat(); // 暂停心跳检测
+ws.pauseHeartbeat(); // 暂停心跳检测
 ws.startHeartbeat(1800, 1); // 以1800ms的间隔，允许连续掉包1次（只掉包一次会忽视）的配置，重新启动心跳检测。
 ```
 
@@ -534,4 +534,3 @@ export default {
 }
 </script>
 ```
-
